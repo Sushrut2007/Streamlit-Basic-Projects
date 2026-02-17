@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker # For formatting the population
 
 path = "data/quarterly_canada_population.csv"
 
@@ -97,4 +98,6 @@ if button:
                 ax.set_xlabel('Time')
                 ax.set_ylabel('Population')
                 ax.set_xticks([df_trend['Quarter'].iloc[0], df_trend['Quarter'].iloc[-1]])
+                ax.get_yaxis().set_major_formatter( # Format the population to be included with ','
+                    ticker.FuncFormatter(lambda x, p: format(int(x),',')))
                 st.pyplot(fig) # Plot the graph
