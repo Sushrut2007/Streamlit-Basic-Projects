@@ -1,10 +1,15 @@
 import streamlit as st
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker # For formatting the population
 
-path = "data/quarterly_canada_population.csv"
+# Get the directory where the current script is located
+dir_path = os.path.dirname(os.path.realpath(__file__))
+# Construct the path to the csv file relative to this folder
+path = os.path.join(dir_path, "data", "quarterly_canada_population.csv")
+
 
 df = pd.read_csv(path, dtype={'Quarter': str, 
                             'Canada': np.int32,
