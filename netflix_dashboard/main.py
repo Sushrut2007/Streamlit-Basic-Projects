@@ -14,6 +14,7 @@ def load_data(file_path):
     Returns:
         df: Cleaned dataframe
     """
+
     df = pd.read_csv(file_path)
 
     return df
@@ -96,6 +97,7 @@ def filter_data(df, content_type, rating_type, countries, year_range):
     Returns:
         filtered_df: filtered DF
     """
+
     filtered_df = df.copy()
 
     # Filter by content
@@ -116,6 +118,114 @@ def filter_data(df, content_type, rating_type, countries, year_range):
             filtered_df = filtered_df[filtered_df['country'].str.contains(pattern)]
 
     return filtered_df
+
+
+@st.cache_data
+def plot_content_over_time(yearly_count):
+    """
+    Create a line chart of year and total titles in each year.
+
+    Args:
+        yearly_count (Series): Time series containing index as year and yearly count.
+
+    Returns:
+        fig: Plotly line chart figure
+    """
+    
+    fig = px.line(data_frame=yearly_count, x = yearly_count.index, y = yearly_count,
+                  title="Title Added Overtime", labels={'x': 'Year', 'y': 'Total Titles Added'})
+
+    return fig
+
+@st.cache_data
+def plot_type_ratio(title_ratio):
+    """
+    Create a pie chart for Movie vs TV Show ratio
+
+    Args:
+        title_ratio (Series): Series containing type and %
+
+    Returns:
+        fig: Plotly pie chart figure
+    """
+
+    fig = px.pie(names=title_ratio.index, values=title_ratio.values,
+                 title="Movie VS TV Show Ratio")
+   
+    return fig
+
+
+@st.cache_data
+def plot_top_genre(df):
+    """
+    Create a bar chart for top genres.
+
+    Args:
+        df (DataFrame): Filtered DF
+
+    Returns:
+        fig: Plotly bar chart figure
+    """ 
+
+    # Extract the genre columns (dummy encoded), and sum the values for each
+    genre_cols = df.columns[8:]
+    top_genres = df[genre_cols].sum().sort_values(ascending=False).head(5)
+    
+    fig = px.bar(x=top_genres, y=top_genres.index, title='Top Genres',
+                 labels={'x': 'Total Titles', 'y': 'Genre'})
+   
+    return fig
+
+
+@st.cache_data
+def plot_top_rating(df):
+    """
+    Create a bar chart for top ratings.
+
+    Args:
+        df (DataFrame): Filtered DF
+
+    Returns:
+        fig: Plotly bar chart figure
+    """ 
+
+   # Aggregate rating ratio using %
+
+    rating_per = df['rating'].value_counts(normalize = True) * 100
+    
+    fig = px.bar(x=rating_per, y=rating_per.index, title='Top Ratings',
+                 labels={'x': 'Total Titles (%) ', 'y': 'Rating'})
+   
+    return fig
+
+
+@st.cache_data
+def plot_by_country(country_count):
+    """
+    Create a scatter plot for countries having most titles.
+
+    Args:
+        country_count (DataFrame): DF having country name and title count
+
+    Returns:
+        fig: Plotly scatter plot figure
+    """ 
+
+    top_countries = country_count.head(10)
+
+    fig = px.scatter(
+        top_countries,
+        x='country',
+        y='count',
+        size='count',
+        color='count',
+        hover_name='country',
+        color_continuous_scale='Reds',
+        size_max=60,
+        title="Titles By Country" 
+    )
+   
+    return fig
 
 def main():
     st.title('🎬 Netflix Content Dashboard')
@@ -158,6 +268,10 @@ def main():
 
     # Filter dataset
     filtered_df = filter_data(df, content_type, rating_type, countries, year_range)
+
+    if filtered_df.empty:
+        st.warning('No titles found with these filters! Please adjust your search!')
+        st.stop()
     # -------------------------------------------
 
     # Aggregate data (used for both KPIs and Charts)
@@ -168,7 +282,7 @@ def main():
     
     # Display KPIs
     col1, col2, col3, col4 = st.columns([1, 1, 1, 1.3])
-    
+
     with col1:
         if content_type == 'All':
             delta_text = "Movies + TV Shows"
@@ -199,10 +313,39 @@ def main():
         # Extract top country name and count
         top_country = country_count.iloc[0]['country']
         top_country_count = country_count.iloc[0]['count']
-        country_prc = f"{(top_country_count / filtered_df.shape[0]) * 100} % titles added"
+        country_prc = f"{round((top_country_count / filtered_df.shape[0]) * 100, 1)} % of all titles"
 
         st.metric('Top country', value=top_country, width="stretch", delta = country_prc, delta_arrow="off")
-        
+    
+    # -------------------------------------------
+    
+    # Visualization plots
+
+    col1, col2 = st.columns([1.5, 1])
+
+    with col1:
+        # Line chart
+        year_fig = plot_content_over_time(yearly_count)
+        st.plotly_chart(year_fig) # Plot
+
+        # Bar chart (top genre)
+        genre_fig = plot_top_genre(filtered_df)
+        st.plotly_chart(genre_fig) # Plot
+
+    with col2:
+        # Pie chart
+        ratio_fig = plot_type_ratio(title_type_ratio)
+        st.plotly_chart(ratio_fig) # Plot
+
+        # Bar chart (top ratings)
+        rating_fig = plot_top_rating(filtered_df)
+        st.plotly_chart(rating_fig) # Plot
+
+    # Scatter plot 
+    country_fig = plot_by_country(country_count)
+    st.plotly_chart(country_fig) # Plot
+
+
 if __name__ == "__main__":
     main()
 
