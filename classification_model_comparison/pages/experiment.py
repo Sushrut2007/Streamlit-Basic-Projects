@@ -93,27 +93,30 @@ def fit_and_score(model_name, k):
     Returns F1-Score.
     """
     
+    # Run the feature selection
+    feature_list = select_features(k)
+    
     if model_name == 'Baseline':
         model = DummyClassifier(strategy='most_frequent', random_state=42)
-        model.fit(X_train, y_train)
+        model.fit(X_train[feature_list], y_train)
 
     elif model_name == 'Decision Tree':
         model = DecisionTreeClassifier(criterion='gini', random_state=42)
-        model.fit(X_train, y_train)
+        model.fit(X_train[feature_list], y_train)
    
     elif model_name == 'Random Forest':
-        model = RandomForestClassifier(n_estimator=100, criterion='gini', random_state=42)
-        model.fit(X_train, y_train)
+        model = RandomForestClassifier(n_estimators=100, criterion='gini', random_state=42)
+        model.fit(X_train[feature_list], y_train)
     
     else: 
-        model =GradientBoostingClassifier(n_estimator=100, random_state=42)
-        model.fit(X_train, y_train)
+        model =GradientBoostingClassifier(n_estimators=100, random_state=42)
+        model.fit(X_train[feature_list], y_train)
 
     # Test and calculate score
-    pred = model.predict(X_test)    
-    f1_score = f1_score(y_test, pred)
+    pred = model.predict(X_test[feature_list])    
+    f1 = f1_score(y_test, pred, average='weighted')
     
-    return f1_score
+    return f1
 
 
 # Write a callback function that runs the model fitting and scoring function
@@ -146,7 +149,7 @@ if __name__ == "__main__":
         k = st.number_input("Choose the number of features to keep", 1, 13)
 
     # Plug in your callback and define the arguments
-    st.button("Train", type="primary")
+    st.button("Train", type="primary", on_click=train_test_model, args=(model, k))
 
     # Display the full dataset inside an expander
 
