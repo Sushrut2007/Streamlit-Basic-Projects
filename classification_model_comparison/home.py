@@ -32,8 +32,10 @@ def display_dataframe():
     }
     
     df = pd.DataFrame(data)
+    
+    df_sorted = df.sort_values(by='F1-Score', ascending=False)
 
-    return df
+    return df_sorted
 
 
 if __name__ == "__main__":

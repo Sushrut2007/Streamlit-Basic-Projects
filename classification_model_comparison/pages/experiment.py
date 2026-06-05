@@ -122,7 +122,7 @@ def fit_and_score(model_name, k):
 # Write a callback function that runs the model fitting and scoring function
 # The callback appends the model, number of features, and score to the state.
 # The callback takes 2 arguments: the model and the number of features to keep
-@st.cache_data()
+
 def train_test_model(model_name, k):
     """
     Calls fit_and_score function that returns the f1 score for the selected model.
