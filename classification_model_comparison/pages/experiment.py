@@ -14,28 +14,124 @@ from sklearn.feature_selection import SelectKBest, mutual_info_classif
 # The layout is centered
 # The sidebar is set to "auto"
 
+st.set_page_config(
+    'Experiment',
+    '🧪',
+    layout='centered',
+    initial_sidebar_state='auto'
+)
+
 # Write a function to load the wine dataset from sklearn
-# Should you cache it?
+# Should you cache it? Yes!
+@st.cache_data()
+def load_wine_data():
+    """
+    Load wine dataset into a dataframe.
+    """
+    wine = load_wine()
+    
+    df = pd.DataFrame(wine.data, columns=wine.feature_names)
+    df['target'] = wine.target
+    
+    return df
+
 
 # Run the function to load the data
+df = load_wine_data()
 
 # Write a function for train/test split.
 # Use stratification, and keep 30% of the data for the test set
-# Should you cache it?
+# Should you cache it? Yes!
+@st.cache_data()
+def split_data():
+    """
+    Split dataset into train-test split (70/30 ratio).
+    Split by maintaining the class distribution (stratify sampling).
+    """
+    X = df.drop('target', axis=1)
+    y = df['target']
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, 
+                                                        random_state=42, stratify=y)
+    
+    return X_train, X_test, y_train, y_test
 
 # Run your train/test split function
+X_train, X_test, y_train, y_test = split_data()
 
 # Write a function to select features using SelectKbest and mutual_info_classif
-# Should you cache it?
+# Should you cache it? Yes!
+@st.cache_data()
+def select_features(k):
+    """
+    Uses K best features using mutual information based feature selection.
+    Returns a list of top K best feature names.
+    """
+    
+    selector = SelectKBest(score_func=mutual_info_classif, k=k)
+    
+    # Fit and transform the data
+    selector.fit_transform(X_train, y_train)
+    # Get the boolean mask of selected features
+    selected_mask = selector.get_support()
+    
+    # Extract the final feature names
+    final_features = X_train.columns[selected_mask].tolist()
+    
+    return final_features
+
 
 # Write a function that fits the selected model and computes the F1-score
 # The function must return the F1-Score
 # Inside this function, you must run feature selection
-# Should you cache it?
+# Should you cache it? Yes!
+@st.cache_data()
+def fit_and_score(model_name, k):
+    """
+    Train the selected model using top K features.
+    Computes F1-Score.
+    Returns F1-Score.
+    """
+    
+    if model_name == 'Baseline':
+        model = DummyClassifier(strategy='most_frequent', random_state=42)
+        model.fit(X_train, y_train)
+
+    elif model_name == 'Decision Tree':
+        model = DecisionTreeClassifier(criterion='gini', random_state=42)
+        model.fit(X_train, y_train)
+   
+    elif model_name == 'Random Forest':
+        model = RandomForestClassifier(n_estimator=100, criterion='gini', random_state=42)
+        model.fit(X_train, y_train)
+    
+    else: 
+        model =GradientBoostingClassifier(n_estimator=100, random_state=42)
+        model.fit(X_train, y_train)
+
+    # Test and calculate score
+    pred = model.predict(X_test)    
+    f1_score = f1_score(y_test, pred)
+    
+    return f1_score
+
 
 # Write a callback function that runs the model fitting and scoring function
 # The callback appends the model, number of features, and score to the state.
 # The callback takes 2 arguments: the model and the number of features to keep
+@st.cache_data()
+def train_test_model(model_name, k):
+    """
+    Calls fit_and_score function that returns the f1 score for the selected model.
+    """
+    
+    f1_score = fit_and_score(model_name, k)
+    
+    # Append data to session state
+    st.session_state['model'].append(model_name)
+    st.session_state['num_features'].append(k)
+    st.session_state['score'].append(f1_score)
+    
 
 if __name__ == "__main__":
     
