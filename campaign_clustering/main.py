@@ -11,29 +11,54 @@ from sklearn.cluster import KMeans, AgglomerativeClustering
 # hashed_passwords = stauth.Hasher(['marketing', 'datascience']).generate()
 # st.write(hashed_passwords)
 
-# Read config file
 
 # Initialize the authenticator
+auth = stauth.Authenticate(
+    'config.yaml'
+)
 
 # Function to read the data
-
-
 @st.cache_data
 def read_data():
     df = pd.read_csv('data/segmentation data.csv')
     return df
 
 # Read data
+df = read_data()
+
 # Assign the features to the variable "X"
+X = df.columns.to_list()
 
 # Function to calculate the silhouette for each algo, for each number of cluster
 # Returns a Dataframe with 3 columns [n_clusters, algo1, algo2]
-
-
 @st.cache_data(show_spinner="Running experiment")
 def run_experiment(X):
-    pass
+    
+    rows = []
+    
+    # Iterate through cluster num 2 to 9
+    for n in range(2, 10):
+        # Run K-Means
+        kmeans = KMeans(n_clusters=n, random_state=42)
+        kmeans_labels = kmeans.fit_predict(X)
+        kmeans_score = silhouette_score(X, kmeans_labels)
+        
+        # Run agglomeritive clustering
+        aglo = AgglomerativeClustering(n_clusters=n, linkage='ward')
+        aglo_labels = aglo.fit_predict(X)
+        aglo_score = silhouette_score(X, aglo_labels)
+        
+        # Append results as a dictionary to the list
+        rows.append({
+            'n_clusters': n,
+            'algo1': kmeans_score,
+            'algo2': aglo_score
+        })
+    
+    # Create final dataframe
+    model_df = pd.DataFrame(rows)
 
+    return model_df
 
 @st.cache_data
 def display_group_metrics(df, num_clusters):
