@@ -17,6 +17,9 @@ auth = stauth.Authenticate(
     'config.yaml'
 )
 
+# Login form
+auth.login(location='sidebar')
+
 # Function to read the data
 @st.cache_data
 def read_data():
@@ -27,7 +30,7 @@ def read_data():
 df = read_data()
 
 # Assign the features to the variable "X"
-X = df.columns.to_list()
+X = df.drop('ID', axis=1)
 
 # Function to calculate the silhouette for each algo, for each number of cluster
 # Returns a Dataframe with 3 columns [n_clusters, algo1, algo2]
@@ -37,7 +40,7 @@ def run_experiment(X):
     rows = []
     
     # Iterate through cluster num 2 to 9
-    for n in range(2, 10):
+    for n in range(2, 11):
         # Run K-Means
         kmeans = KMeans(n_clusters=n, random_state=42)
         kmeans_labels = kmeans.fit_predict(X)
@@ -56,9 +59,9 @@ def run_experiment(X):
         })
     
     # Create final dataframe
-    model_df = pd.DataFrame(rows)
+    metrics_df = pd.DataFrame(rows)
 
-    return model_df
+    return metrics_df
 
 @st.cache_data
 def display_group_metrics(df, num_clusters):
@@ -132,19 +135,17 @@ def display_group_metrics(df, num_clusters):
             st.write(f"The majority is: {city}")
 
 # Function to display content for DS
-
-
 def display_ds_content():
-    # Write the dataframe
+    st.write(df)
+    exp_button = st.button('Run experiment')
+    
     # Button to run the function run_experiment
-
-    if exp_btn:
-        # Run the experiment
+    if exp_button:
+        metrics_df = run_experiment(X)
 
         st.write("Silhouette scores")
-
-        # Write the df of the results
-
+        st.write(metrics_df)
+        
 
 def display_marketing_content():
     st.write(df)
@@ -165,5 +166,22 @@ def display_marketing_content():
 
         display_group_metrics(c_df, num_clusters)
 
+
 # Logic to authenticate user
-# Put login in sidebar
+
+# Successful login
+if st.session_state['authentication_status']:
+    auth.logout('Logout', location='sidebar', key='random_key')
+   
+    if st.session_state['username'] == 'marketing':
+       st.write(f'Welcome *{st.session_state['name']}*')
+       st.title('Marketing content')
+       
+       display_marketing_content()
+    
+    elif st.session_state['username'] == 'datascience':
+       st.write(f'Welcome *{st.session_state['name']}*')
+       st.title('Data science content')
+       
+       display_ds_content()
+    
