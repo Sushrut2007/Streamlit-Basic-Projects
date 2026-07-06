@@ -1,5 +1,6 @@
 import streamlit as st
 from supabase import create_client, Client
+from supabase_auth.errors import AuthApiError
 import pandas as pd
 
 
@@ -27,3 +28,31 @@ def sign_up(supabase, email, password):
     })
 
     return session
+#------------------------------------------------------------------
+
+
+
+def sign_in(supabase, email, password):
+    """
+    Sign in user.
+    """
+
+    session = supabase.auth.sign_in_with_password({
+        'email': email,
+        'password': password
+    })
+
+    return session
+#------------------------------------------------------------------
+
+
+def sign_out(supabase):
+    """
+    Sign out the user.
+    """
+    try:
+        supabase.auth.sign_out()
+        return True
+
+    except AuthApiError:
+        return False
