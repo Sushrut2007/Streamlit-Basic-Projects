@@ -22,12 +22,12 @@ def sign_up(supabase, email, password):
     Create a new user account if email already doesn't exists.
     """
     
-    session = supabase.auth.sign_up({
+    response = supabase.auth.sign_up({
         'email': email,
         'password': password
     })
 
-    return session
+    return response.user, response.session
 #------------------------------------------------------------------
 
 
