@@ -19,10 +19,12 @@ with st.form('login_form'):
 
             st.session_state['user_id'] = session.user.id
             st.session_state['user'] = user
+
             st.success('Sign in successful!', icon='✅')
             st.markdown('Redirecting to the dashboard..')
             sleep(2)
 
+            # Redirect to the dashboard
             st.rerun()
         else:
             st.error('Invalid email or password', icon='❌')

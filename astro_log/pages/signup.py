@@ -28,8 +28,12 @@ with st.form('Signup_form'):
 
             sleep(2)
 
+            # Store 'user' and 'user_id' in session state
             if session:
                 st.session_state['user'] = user
+                st.session_state['user_id'] = user.id
+
+                # Redirect to the dashboard
                 st.rerun()
 
         # Error if passwords do not  match
