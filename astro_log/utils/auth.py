@@ -37,12 +37,12 @@ def sign_in(supabase, email, password):
     Sign in user.
     """
 
-    session = supabase.auth.sign_in_with_password({
+    reponse = supabase.auth.sign_in_with_password({
         'email': email,
         'password': password
     })
 
-    return session
+    return reponse.user, reponse.session
 #------------------------------------------------------------------
 
 
