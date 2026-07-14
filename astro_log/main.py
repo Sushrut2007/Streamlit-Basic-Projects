@@ -11,13 +11,13 @@ if 'user' not in st.session_state:
 # Define all pages
 signup_page = st.Page('pages/signup.py', title='Sign up')
 login_page = st.Page('pages/login.py', title='Login in')
-dashboard_page = st.Page('pages/dashboard.py', title='Dashboard', default=True)
-
+dashboard_page = st.Page('pages/dashboard.py', title='Dashboard', default=True, icon='🏡')
+profile_page = st.Page('pages/profile.py', title='Profile', icon='😎')
 
 # Dynamic navigation
 if st.session_state['user'] is None:
     pg = st.navigation([signup_page, login_page])
 else:
-    pg = st.navigation([dashboard_page])
+    pg = st.navigation([dashboard_page, profile_page])
 
 pg.run()
