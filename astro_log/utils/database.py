@@ -2,13 +2,13 @@ import streamlit as st
 import pandas as pd
 
 @st.cache_data(show_spinner='Fetching profile....')
-def fetch_profile(supabase):
+def fetch_profile(_supabase):
     """
     Fetch the user profile from profiles table.
     Returns a dataframe
     """
     
-    response = supabase.table('profiles').select('*').eq('id' ,st.session_state['user_id']).execute()
+    response = _supabase.table('profiles').select('*').eq('id' ,st.session_state['user_id']).execute()
     df = pd.DataFrame(response.data)
 
     return df

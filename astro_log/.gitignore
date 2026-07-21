@@ -1,1 +1,9 @@
+# Folders
 .streamlit/
+__pycache__/
+
+# Files
+astro-log-mockup.html
+landing.html
+nightlog_profile_page.html
+profile-mockup.html
